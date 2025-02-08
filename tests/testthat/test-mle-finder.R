@@ -1,21 +1,26 @@
-test_that("linalg and optim least-sq coincide", {
+test_that("Linear algebra and Optim() least squares coincide", {
+
   # Simulate data
   n_obs <- 32
   n_pred <- 4
-  data <- simulate_data(n_obs, n_pred, model = linear, seed = 1918)
+  data <- simulate_data(n_obs, n_pred, model = "linear", seed = 1918)
   outcome <- data$outcome
   design <- data$design
+  outcome <- matrix(outcome, ncol = 1)
 
-   # Get MLE using analytical formula
-   linalg_out <- hiper_glm(design, outcome, model = "linear",
-                           option = list(mle_finder = "pseudo-inverse"),
+  # MLE using analytical formula
+  linalg_out <- hiper_glm(design, outcome, model = "linear",
+                          optimizer = "pseudo-inverse")
 
-   # Get MLE using stats::optim()
-   optim_out <- hiper_glm(design, outcome, model = "linear",
-                          option = list(mle_finder = "BFGS")),
+  # MLE using stats::optim()
+  optim_out <- hiper_glm(design, outcome, model = "linear",
+                         optimizer = "BFGS")
 
-   # Compare the two
-   expect_true(are_all_close(coef(linalg_out), coef(optim_out),
-                             abs_tol = 1e-3, rel_tol = 1e-3)))
+  print(coef(linalg_out))
+  print(coef(optim_out))
 
+  # Compare
+  expect_true(are_all_close(coef(linalg_out), coef(optim_out),
+                            abs_tol = 1e-3, rel_tol = 1e-3))
 })
+
